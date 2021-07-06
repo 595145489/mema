@@ -7,9 +7,11 @@
 #include "src/ChannelList.h"
 #include "src/base/Buffer.h"
 
+#include "src/thirdparty/gflags/include/gflags/gflags.h"
+
+DEFINE_bool(big_menu, true, "Include 'advanced' options in the menu listing");
 
 using namespace mema;
-
 
 ListenThread::ListenThread(std::shared_ptr<ThreadPool> pointer_poll,MemaBase* base_):create_flag(false),
                                                                                      poller_(Poller::GetDefaultPoller()),

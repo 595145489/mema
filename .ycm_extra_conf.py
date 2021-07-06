@@ -88,9 +88,12 @@ flags = [
 '/usr/include/x86_64-linux-gnu',
 '-isystem',
 '/usr/local/include',
-'-isystem'
+'-isystem',
 './mema',
-
+'-isystem',
+'./mema/src/thirdparty/gflags/include',
+'-isystem',
+'./mema/src/thirdparty/gflags/src',
 # Termux
 '-isystem',
 '/data/data/com.termux/files/usr/include',

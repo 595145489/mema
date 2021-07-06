@@ -1,14 +1,15 @@
 add_subdirectory(base)
+add_subdirectory(thirdparty/gflags)
 
 file(GLOB base_SRC "*.cc")
 file(GLOB thread_SRC "thread/*.cc")
 file(GLOB poller_SRC "poller/*.cc")
 
-add_library(mema_base ${base_SRC} ${thread_SRC} ${poller_SRC})
+add_library(mema_base ${base_SRC} ${thread_SRC} ${poller_SRC} )
 
 target_include_directories(mema_base PUBLIC ${PROJECT_SOURCE_DIR}/mema) 
 target_link_libraries(mema_base PUBLIC mema_base_lib)
-# target_link_libraries(mema_base PUBLIC gflags::gflags)
+target_link_libraries(mema_base PUBLIC gflags::gflags)
 
 file(GLOB HEADS "*.h")
 
