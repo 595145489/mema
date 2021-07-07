@@ -6,44 +6,66 @@
 #include "src/ThreadPool.h"
 #include "src/ChannelList.h"
 #include "src/base/Buffer.h"
+#include "src/socketopt/SocketLink.h"
+#include "src/socketopt/TcpConnection.h"
+#include "src/socketopt/TcpAcceptor.h"
 
 #include "src/thirdparty/gflags/include/gflags/gflags.h"
 
-DEFINE_bool(big_menu, true, "Include 'advanced' options in the menu listing");
-
 using namespace mema;
+
+DECLARE_int32(PORT);
+DECLARE_string(SERVERADDR);
 
 ListenThread::ListenThread(std::shared_ptr<ThreadPool> pointer_poll,MemaBase* base_):create_flag(false),
                                                                                      poller_(Poller::GetDefaultPoller()),
                                                                                      pointer_poll(pointer_poll),
-                                                                                     port(6001),
-                                                                                     listen_channel(std::make_shared<FdChannel>(Socket::GreateTcpSocketFd(AF_INET))),
+                                                                                     addr_(FLAGS_SERVERADDR.c_str()),
+                                                                                     is_server(FLAGS_SERVERADDR=="0.0.0.0"?true:false),
+                                                                                     port(FLAGS_PORT),
+                                                                                     socket_link(is_server?
+                                                                                                 dynamic_cast<SocketLink*>(new TcpAcceptor(this)):
+                                                                                                 dynamic_cast<SocketLink*>(new TcpConnection(this))),
+                                                                                     listen_channel(std::make_shared<FdChannel>(socket_link->GetSocketFd())),
                                                                                      list_buffer(std::make_shared<ListBuffer>(100)) { }
 
 void ListenThread::Initialize()
 {
     SetSocketReuseAddr(listen_channel);
     SetSocketReusePort(listen_channel);
-    CreateSocket(port);
-    SetReadFd(listen_channel);
+    socket_link->CreateSocket(listen_channel.get(),addr_,port);
+    socket_link->SetFdInitStatus(listen_channel);
+    /* CreateSocket(port); */
+    /* SetReadFd(listen_channel); */
     listen_channel->SetIndexModify();
     create_flag=true;
 }
 
-void ListenThread::CreateSocket(int port)
-{
-    auto addr_ipv4 = Socket::NewSockaddrIpv();
-    Socket::SetSocketAddrIpv(*(Socket::SocketaddrToSocketaddrin(addr_ipv4).get()),port);
-    Socket::BindFdToPort(listen_channel->GetFd(),addr_ipv4.get());
-    Socket::ListenFd(listen_channel->GetFd());
-    listen_channel->SetAddrIpv4(addr_ipv4);
-}
+/* void ListenThread::CreateSocket(int port) */
+/* { */
+/*     auto addr_ipv4 = Socket::NewSockaddrIpv(); */
+/*     Socket::SetSocketAddrIpv(*(Socket::SocketaddrToSocketaddrin(addr_ipv4).get()),port,addr_); */
+/*     if(is_server){ */
+/*         Socket::BindFdToPort(listen_channel->GetFd(),addr_ipv4.get()); */
+/*         Socket::ListenFd(listen_channel->GetFd()); */
+/*     } */
+/*     else{ */
+/*         Socket::Connect(listen_channel->GetFd(),addr_ipv4.get()); */
+/*     } */
+/*     listen_channel->SetAddrIpv4(addr_ipv4); */
+/* } */
 
+
+FdChannel* ListenThread::GetListenFd()
+{
+    return listen_channel.get();
+}
 
 void ListenThread::OnHandle()
 {
     LOG_INFO("action handle");
     ChannelList activity_list;
+    return ;
     for(;;){
         {
             std::shared_ptr<ThreadPool> temp = pointer_poll.lock();
@@ -51,7 +73,8 @@ void ListenThread::OnHandle()
                 break;
         }
         poller_->WaitActivity(activity_list);
-        activity_list.ForEachThenRemove(bind(&ListenThread::HandleActivity,this,std::placeholders::_1));
+        activity_list.ForEachThenRemove(
+            bind(&SocketLink::HandleActivity,socket_link,std::placeholders::_1));
     };
 }
 
@@ -66,21 +89,21 @@ void ListenThread::SetSocketReusePort(std::shared_ptr<FdChannel>& channel)
     Socket::SetSocketOpt<int>(channel->GetFd(),SO_REUSEPORT,1); 
 }
 
-void ListenThread::HandleActivity(FdChannel* channel)
-{
-    if(channel==listen_channel.get()){
-        OnConnection();
-    }
-    else if(channel->IsReventRead()){
-        OnRead(channel);
-    }
-    else if(channel->IsReventWrite()){
-        OnWrite(channel);
-    }
-    else{
+/* void ListenThread::HandleActivity(FdChannel* channel) */
+/* { */
+/*     if(is_server && channel==listen_channel.get() ){ */
+/*         OnConnection(); */
+/*     } */
+/*     else if(channel->IsReventRead()){ */
+/*         OnRead(channel); */
+/*     } */
+/*     else if(channel->IsReventWrite()){ */
+/*         OnWrite(channel); */
+/*     } */
+/*     else{ */
 
-    }
-}
+/*     } */
+/* } */
 
 ListenThread::IovList ListenThread::GetIovec(int size)
 {
@@ -108,7 +131,8 @@ void ListenThread::OnRead(FdChannel* channel)
         ++countofmessage;
     }while(iter.Vaild() && size>0);
     std::shared_ptr<ListBuffer> message = std::make_shared<ListBuffer>(countofmessage,list_buffer);
-    channel->UncompleteMessageCollectAndCompleteMessageDistribution(message,countofmessage,std::bind(&ListenThread::InsertCompleteMessage,this,std::placeholders::_1));
+    channel->UncompleteMessageCollectAndCompleteMessageDistribution(message,countofmessage,
+                                                                    std::bind(&ListenThread::InsertCompleteMessage,this,std::placeholders::_1));
 }
 
 void ListenThread::InsertCompleteMessage(std::shared_ptr<ListBuffer>& message_buffer)

@@ -178,9 +178,14 @@ int Socket::AcceptFd(const int fd,struct sockaddr_in6* addr_)
 
 int Socket::Connect(const int fd,const struct sockaddr* addr_)
 {
-    return ::connect(fd,
+    int ret = ::connect(fd,
                     addr_,
-                    static_cast<socklen_t>(sizeof(struct sockaddr_in6*)));
+                    static_cast<socklen_t>(sizeof(struct sockaddr_in6)));
+    if(ret<0){
+        LOG_ERROR("connect socket failure" << errno);
+    }
+
+    return ret;
 }
 
 void Socket::CloseFd(int fd)
