@@ -35,25 +35,9 @@ void ListenThread::Initialize()
     SetSocketReusePort(listen_channel);
     socket_link->CreateSocket(listen_channel.get(),addr_,port);
     socket_link->SetFdInitStatus(listen_channel);
-    /* CreateSocket(port); */
-    /* SetReadFd(listen_channel); */
     listen_channel->SetIndexModify();
     create_flag=true;
 }
-
-/* void ListenThread::CreateSocket(int port) */
-/* { */
-/*     auto addr_ipv4 = Socket::NewSockaddrIpv(); */
-/*     Socket::SetSocketAddrIpv(*(Socket::SocketaddrToSocketaddrin(addr_ipv4).get()),port,addr_); */
-/*     if(is_server){ */
-/*         Socket::BindFdToPort(listen_channel->GetFd(),addr_ipv4.get()); */
-/*         Socket::ListenFd(listen_channel->GetFd()); */
-/*     } */
-/*     else{ */
-/*         Socket::Connect(listen_channel->GetFd(),addr_ipv4.get()); */
-/*     } */
-/*     listen_channel->SetAddrIpv4(addr_ipv4); */
-/* } */
 
 
 FdChannel* ListenThread::GetListenFd()
@@ -88,22 +72,6 @@ void ListenThread::SetSocketReusePort(std::shared_ptr<FdChannel>& channel)
 {
     Socket::SetSocketOpt<int>(channel->GetFd(),SO_REUSEPORT,1); 
 }
-
-/* void ListenThread::HandleActivity(FdChannel* channel) */
-/* { */
-/*     if(is_server && channel==listen_channel.get() ){ */
-/*         OnConnection(); */
-/*     } */
-/*     else if(channel->IsReventRead()){ */
-/*         OnRead(channel); */
-/*     } */
-/*     else if(channel->IsReventWrite()){ */
-/*         OnWrite(channel); */
-/*     } */
-/*     else{ */
-
-/*     } */
-/* } */
 
 ListenThread::IovList ListenThread::GetIovec(int size)
 {
@@ -146,7 +114,9 @@ void ListenThread::OnReadCallBackFunc(std::shared_ptr<ListBuffer>& message_buffe
 
 void ListenThread::OnWrite(FdChannel* channel)
 {
-
+    LOG_INFO("begin write");
+    ListenThread::IovList iov =  GetIovec(4);
+    ssize_t size = Socket::Writev(channel->GetFd(),&*(iov.begin()),4);
 }
 
 void ListenThread::OnConnection()

@@ -13,7 +13,7 @@ int main(){
     int i = 0;
     
     if(0){
-        Buffer x;
+        Buffer x(512);
         x << 12.22;
         x << ' ';
         x << 55555555;

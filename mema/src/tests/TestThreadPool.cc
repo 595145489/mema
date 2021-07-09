@@ -3,8 +3,6 @@
 #include "src/MemaBase.h"
 #include "src/thirdparty/gflags/include/gflags/gflags.h"
 
-#include <iostream>
-using namespace std;
 using namespace mema; 
 
 DEFINE_int32(PORT, 6002, "server listen port");

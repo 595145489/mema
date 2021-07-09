@@ -1,5 +1,5 @@
-add_subdirectory(base)
 add_subdirectory(thirdparty/gflags)
+add_subdirectory(base)
 
 file(GLOB base_SRC "*.cc")
 file(GLOB thread_SRC "thread/*.cc")

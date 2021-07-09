@@ -18,9 +18,8 @@ FdChannel::FdChannel(int fd_):socket_fd(fd_),
                               revent_(kNoneEvent),
                               index(IndexStatus::KNew),
                               addr_(nullptr),
-                              addr_type(SocketType::kNone)
-{
-}
+                              addr_type(SocketType::kNone),
+                              current_number(1) { }
 
 void FdChannel::SetAddrIpv4(std::shared_ptr<sockaddr>& addr)
 {
@@ -133,5 +132,9 @@ void FdChannel::UncompleteMessageCollectAndCompleteMessageDistribution(std::shar
 }
 
 
+void FdChannel::Send(std::string &str)
+{
+
+}
 
 

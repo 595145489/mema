@@ -8,7 +8,7 @@
 using namespace mema;
 namespace fs = std::experimental::filesystem;
 
-thread_local std::unique_ptr<Buffer> Log::log_buffer = std::make_unique<Buffer>();
+thread_local std::unique_ptr<Buffer> Log::log_buffer = std::make_unique<Buffer>(Buffer::GetDefaultMaxSize());
 const char* LogLevelName[static_cast<int>(LogLevel::NUMBER_LEVEL)] = 
 {
     "TRACE",

@@ -1,7 +1,10 @@
 #pragma once
 //To do 
 //we must to create a new string buffer
+#include "src/base/noncopyable.h"
+#include "src/thirdparty/gflags/include/gflags/gflags.h"
 
+//just debug
 #include <iostream>
 
 #include <cstring>
@@ -9,8 +12,8 @@
 #include <vector>
 #include <endian.h>
 
-// just debug
-#include "src/base/noncopyable.h"
+
+DECLARE_int32(PROTOCAL_SIZE);
 
 namespace mema{
 
@@ -20,16 +23,30 @@ typedef Buffer self;
 typedef std::vector<char> CharType;
 public:
     //the last char must be \0
-    Buffer():freesize(max_size-1),
-             vchar(max_size),
-             size(0),
-             current_position(begin())
+    // this construction function is cu
+    /* Buffer():freesize(max_size-1), */
+    /*          vchar(max_size), */
+    /*          size(0), */
+    /*          current_position(begin()) */
+    /* { */
+    /*     std::cout << "creat buffer" << std::endl; */
+    /*     vchar[size] = '\0'; */
+    /* } */
+    Buffer(int size):buffer_max_size(size),
+                     freesize(size), 
+                     vchar(size),
+                     size(0),
+                     current_position(begin())
     {
         std::cout << "creat buffer" << std::endl;
         vchar[size] = '\0';
     }
     ~Buffer() {
         Clear();
+    }
+
+    static uint32_t GetDefaultMaxSize(){
+        return FLAGS_PROTOCAL_SIZE; 
     }
 
     std::string GetString(){
@@ -125,12 +142,12 @@ public:
     }
     void Clear(){
         size = 0;
-        freesize = max_size-1; 
+        freesize = buffer_max_size-1; 
         SetEnd();
         current_position = begin();
     }
     size_t GetMaxSize(){
-        return max_size-1;
+        return buffer_max_size-1;
     }
     bool SetSize(size_t insert_size){
         if(insert_size>freesize){
@@ -158,7 +175,8 @@ private:
     }
 
 private:
-    static const size_t max_size;
+    /* static const size_t max_size; */
+    uint32_t buffer_max_size;
     size_t freesize;
     CharType vchar;
     size_t size;

@@ -1,8 +1,11 @@
 #pragma once
 #include "src/base/Socket.h"
+#include "src/base/MutexLock.h"
+#include "src/base/WriteBuffer.h"
 
 #include <functional>
 #include <unordered_map>
+#include <deque>
 
 namespace mema{
 
@@ -10,6 +13,7 @@ class MemaBase;
 class ListenThread;
 class Epoller;
 class ListBuffer;
+class WriteBuffer;
 
 
 enum class IndexStatus{
@@ -25,12 +29,18 @@ enum class SocketType{
 };
 class FdChannel
 {
+
 struct index_uncomplete{
     uint32_t total_size;
     std::shared_ptr<ListBuffer> message;
 };
+
+
+
 typedef std::unordered_map<uint32_t,index_uncomplete>  UncompleteMessage;
 typedef std::function<void(std::shared_ptr<ListBuffer>& message)> ReadCallBack;
+
+typedef std::deque<std::shared_ptr<WriteBuffer>>  UnwriteList;
 /* friend class ListenThread; */
 /* friend class Epoller; */
 public:
@@ -61,6 +71,8 @@ public:
 
     /* void OnRead(std::shared_ptr<ListBuffer>& message,ReadCallBack readcallbackfunc); */
     void UncompleteMessageCollectAndCompleteMessageDistribution(std::shared_ptr<ListBuffer>& message,int countofmessage,ReadCallBack readcallbackfunc);
+
+    void Send(std::string &str);
 private:
     static const int kNoneEvent;
     static const int kReadEvent;
@@ -72,9 +84,15 @@ private:
     IndexStatus index;
     std::shared_ptr<sockaddr> addr_ ;
     SocketType addr_type;
+    uint32_t current_number;
+
+    UnwriteList unwritelist GUARDED_BY(unwritelist_lock);
+    MutexLock unwritelist_lock;
+    // using for read message;
+    UncompleteMessage uncomplete_message;
+
     MemaBase* base_;
 
-    UncompleteMessage uncomplete_message;
 };
 
 }// end namespace

@@ -1,5 +1,6 @@
 #pragma once
 #include "src/base/noncopyable.h"
+#include "src/base/Buffer.h"
 
 #include <deque>
 #include <memory>
@@ -17,7 +18,7 @@ typedef std::deque<std::unique_ptr<Buffer>>::iterator ListIter;
 typedef std::function<void(std::unique_ptr<Buffer>)> HandleElementFunc;
 /* Itertor cIter) */
 public:
-    ListBuffer(int buffer_size);
+    ListBuffer(int buffer_size,uint32_t per_buffer_size = Buffer::GetDefaultMaxSize());
     ListBuffer(int buffer_size,std::shared_ptr<ListBuffer> list_);
     ~ListBuffer();
 
