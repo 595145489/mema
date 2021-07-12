@@ -17,17 +17,18 @@ using namespace mema;
 DECLARE_int32(PORT);
 DECLARE_string(SERVERADDR);
 
-ListenThread::ListenThread(std::shared_ptr<ThreadPool> pointer_poll,MemaBase* base_):create_flag(false),
-                                                                                     poller_(Poller::GetDefaultPoller()),
-                                                                                     pointer_poll(pointer_poll),
-                                                                                     addr_(FLAGS_SERVERADDR.c_str()),
-                                                                                     is_server(FLAGS_SERVERADDR=="0.0.0.0"?true:false),
-                                                                                     port(FLAGS_PORT),
-                                                                                     socket_link(is_server?
-                                                                                                 dynamic_cast<SocketLink*>(new TcpAcceptor(this)):
-                                                                                                 dynamic_cast<SocketLink*>(new TcpConnection(this))),
-                                                                                     listen_channel(std::make_shared<FdChannel>(socket_link->GetSocketFd())),
-                                                                                     list_buffer(std::make_shared<ListBuffer>(100)) { }
+ListenThread::ListenThread(std::shared_ptr<ThreadPool> pointer_poll,MemaBase* base):create_flag(false),
+                                                                                    base_(base),
+                                                                                    poller_(Poller::GetDefaultPoller()),
+                                                                                    pointer_poll(pointer_poll),
+                                                                                    addr_(FLAGS_SERVERADDR.c_str()),
+                                                                                    is_server(FLAGS_SERVERADDR=="0.0.0.0"?true:false),
+                                                                                    port(FLAGS_PORT),
+                                                                                    socket_link(is_server?
+                                                                                                dynamic_cast<SocketLink*>(new TcpAcceptor(this)):
+                                                                                                dynamic_cast<SocketLink*>(new TcpConnection(this))),
+                                                                                    listen_channel(std::make_shared<FdChannel>(socket_link->GetSocketFd(),base_)),
+                                                                                    list_buffer(std::make_shared<ListBuffer>(100)) { }
 
 void ListenThread::Initialize()
 {
@@ -37,6 +38,7 @@ void ListenThread::Initialize()
     socket_link->CreateSocket(listen_channel.get(),addr_,port);
     socket_link->SetFdInitStatus(listen_channel);
     listen_channel->SetIndexModify();
+    listen_channel->OnConnection();
     create_flag=true;
 }
 
@@ -74,10 +76,10 @@ void ListenThread::SetSocketReusePort(std::shared_ptr<FdChannel>& channel)
     Socket::SetSocketOpt<int>(channel->GetFd(),SO_REUSEPORT,1); 
 }
 
-ListenThread::IovList ListenThread::GetIovec(int size)
+ListenThread::IovList ListenThread::GetIovec(int size,std::shared_ptr<ListBuffer>& list_)
 {
     ListenThread::IovList iov(size);
-    ListBuffer::Itertor iter(list_buffer);
+    ListBuffer::Itertor iter(list_);
     for(int count = 0;iter.Vaild() && size > count ;++count,iter.Next()){
         iov[count].iov_base = iter.Get()->begin();
         iov[count].iov_len  = iter.Get()->FreeSize();
@@ -88,7 +90,7 @@ ListenThread::IovList ListenThread::GetIovec(int size)
 void ListenThread::OnRead(FdChannel* channel)
 {
     LOG_INFO("begin read");
-    ListenThread::IovList iov =  GetIovec(4);
+    ListenThread::IovList iov =  GetIovec(4,list_buffer);
     ssize_t size = Socket::Recdv(channel->GetFd(),&*(iov.begin()),4);
     ListBuffer::Itertor iter(list_buffer);
     ssize_t epoch_size = iter.Get()->GetMaxSize();
@@ -116,14 +118,20 @@ void ListenThread::OnReadCallBackFunc(std::shared_ptr<ListBuffer>& message_buffe
 void ListenThread::OnWrite(FdChannel* channel)
 {
     LOG_INFO("begin write");
-    ListenThread::IovList iov =  GetIovec(4);
-    ssize_t size = Socket::Writev(channel->GetFd(),&*(iov.begin()),4);
+    std::shared_ptr<ListBuffer> current_buffer = list_buffer->GetNewBuffer(4);
+    ListenThread::IovList iov =  GetIovec(4,current_buffer);
+    int real_buffer_size = channel->PrepareWriteBuffer(current_buffer,4);
+    if(real_buffer_size>0)
+        ssize_t size = Socket::Writev(channel->GetFd(),&*(iov.begin()),real_buffer_size);
+    list_buffer->EmplaceBackAndClear(current_buffer,4);
 }
 
 void ListenThread::OnConnection()
 {
     auto addr_ipv6 = Socket::NewSockaddrIpv();
-    std::shared_ptr<FdChannel> new_channel = std::make_shared<FdChannel>(Socket::AcceptFd(listen_channel->GetFd(),Socket::SocketaddrToSocketaddr6(addr_ipv6).get()));
+    std::shared_ptr<FdChannel> new_channel = std::make_shared<FdChannel>(Socket::AcceptFd(listen_channel->GetFd(),
+                                                                                          Socket::SocketaddrToSocketaddr6(addr_ipv6).get()),
+                                                                         base_);
     new_channel->SetEventCallBackFunc(std::bind(&ListenThread::GetStatusAndSetUpdate,this,std::placeholders::_1));
     SetSocketReuseAddr(new_channel);
     SetSocketReusePort(new_channel);

@@ -33,7 +33,7 @@ public:
     /*     vchar[size] = '\0'; */
     /* } */
     Buffer(int size):buffer_max_size(size),
-                     freesize(size), 
+                     freesize(size-1), 
                      vchar(size),
                      size(0),
                      current_position(begin())
@@ -46,7 +46,7 @@ public:
     }
 
     static uint32_t GetDefaultMaxSize(){
-        return FLAGS_PROTOCAL_SIZE; 
+        return FLAGS_PROTOCAL_SIZE - 1; 
     }
 
     std::string GetString(){

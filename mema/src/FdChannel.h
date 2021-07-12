@@ -45,7 +45,7 @@ typedef std::deque<std::shared_ptr<WriteBuffer>>  UnwriteList;
 /* friend class ListenThread; */
 /* friend class Epoller; */
 public:
-    FdChannel(int fd_);
+    FdChannel(int fd_,MemaBase* base);
     ~FdChannel();
 
     int GetFd();
@@ -75,10 +75,12 @@ public:
 
     /* void OnRead(std::shared_ptr<ListBuffer>& message,ReadCallBack readcallbackfunc); */
     void UncompleteMessageCollectAndCompleteMessageDistribution(std::shared_ptr<ListBuffer>& message,int countofmessage,ReadCallBack readcallbackfunc);
-    void PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie);
+    int PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie);
 
     void SendOps();
     void Send(std::string &str);
+
+    void OnConnection();
 private:
     static const int kNoneEvent;
     static const int kReadEvent;

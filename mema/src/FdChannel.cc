@@ -1,9 +1,11 @@
 #include "src/FdChannel.h"
 #include "src/base/ListBuffer.h"
 #include "src/base/coding.h"
+#include "src/MemaBase.h"
 
 #include "sys/poll.h"
 #include <fcntl.h>
+#include <assert.h>
 
 
 using namespace mema;
@@ -13,13 +15,14 @@ const int FdChannel::kReadEvent = POLLIN | POLLPRI;
 const int FdChannel::kWriteEvent = POLLOUT;
 
 
-FdChannel::FdChannel(int fd_):socket_fd(fd_),
+FdChannel::FdChannel(int fd_,MemaBase* base):socket_fd(fd_),
                               event_(kNoneEvent),
                               revent_(kNoneEvent),
                               index(IndexStatus::KNew),
                               addr_(nullptr),
                               addr_type(SocketType::kNone),
-                              current_number(1) { }
+                              current_number(1),
+                              base_(base) { }
 
 void FdChannel::SetAddrIpv4(std::shared_ptr<sockaddr>& addr)
 {
@@ -145,10 +148,32 @@ void FdChannel::Send(std::string &str)
         MutexLockGuard lock_(unwritelist_lock);
         unwritelist.emplace_back(writer);
     }
+    AddWriteFd();
 }
 
 
-void FdChannel::PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie)
+int FdChannel::PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie)
 {
-
+    std::shared_ptr<WriteBuffer> writer_cache;  
+    LocalWriteParm parm;
+    {
+        MutexLockGuard lock_(unwritelist_lock);
+        if(unwritelist.empty()){
+            DelWriteFd();
+            return 0;
+        }
+        writer_cache = unwritelist.front();
+        writer_cache->GetlocalParm(parm,message_szie);
+        if(writer_cache->HaveRemainCount())
+            unwritelist.pop_front();
+    }
+    int return_write_buffer = parm.local_send_count;
+    writer_cache->InsertoBuffer(parm,message);
+    return return_write_buffer;
 }
+
+void FdChannel::OnConnection()
+{
+    base_->OnConnection(this);
+}
+

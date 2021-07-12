@@ -38,12 +38,13 @@ private:
     /* void HandleActivity(FdChannel* activity_fd); */
     void GetStatusAndSetUpdate(FdChannel* channel);
 
-    IovList GetIovec(int size); 
+    IovList GetIovec(int size,std::shared_ptr<ListBuffer>& list_); 
 
     void OnReadCallBackFunc(std::shared_ptr<ListBuffer>& message_buffer);
     void InsertCompleteMessage(std::shared_ptr<ListBuffer>& message_buffer);
 private:
     bool create_flag;
+    MemaBase* base_;
     std::shared_ptr<Poller> poller_;
     std::weak_ptr<ThreadPool> pointer_poll;
     const char* addr_;

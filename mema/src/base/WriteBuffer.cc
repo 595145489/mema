@@ -29,7 +29,7 @@ uint32_t WriteBuffer::InsertoBuffer(struct LocalWriteParm& parm,std::shared_ptr<
 {
     auto iter = ListBuffer::Itertor(buffer);
     uint32_t list_count = 0;
-    for(;iter.Vaild()&&list_count<parm.local_send_count&&GetRemainCount();list_count++,iter.Next())
+    for(;iter.Vaild()&&list_count<parm.local_send_count&&parm.local_send_count;list_count++,iter.Next())
        InsertoBuffer(parm,iter.Get().get()); 
     return list_count;
 }
@@ -42,7 +42,7 @@ WriteStringBuffer::WriteStringBuffer(uint32_t number_,std::string& buffer):Write
     remain_size = buffer_.size();
     // remain_size + 4 is the first buffer need to add total count of message
     // per_buffer_max_size mean  that each messgae should add 8 bytes head(number and index) 
-    count_of_remain_message = ceil( (remain_size+4) / ( per_buffer_max_size - header_size));
+    count_of_remain_message = ceil( static_cast<float>(remain_size+4) / ( per_buffer_max_size - header_size));
 
 }
 
@@ -60,7 +60,7 @@ void WriteStringBuffer::InsertoBuffer(struct LocalWriteParm& parm,Buffer* buffer
     EncodeFixed32(index_c,parm.local_current_send_index);
     buffer->append(index_c,4);
 
-    if(current_send_index == 1){
+    if(parm.local_current_send_index == 1){
         char total_size_c[4];
         EncodeFixed32(total_size_c,parm.local_count_of_remain_message);
         buffer->append(total_size_c,4);
