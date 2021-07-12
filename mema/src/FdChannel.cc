@@ -132,9 +132,23 @@ void FdChannel::UncompleteMessageCollectAndCompleteMessageDistribution(std::shar
 }
 
 
+void FdChannel::SendOps()
+{
+    AddWriteFd();
+}
+
 void FdChannel::Send(std::string &str)
 {
-
+    SendOps();
+    shared_ptr<WriteBuffer> writer = std::make_shared<WriteStringBuffer>(current_number,str);
+    {
+        MutexLockGuard lock_(unwritelist_lock);
+        unwritelist.emplace_back(writer);
+    }
 }
 
 
+void FdChannel::PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie)
+{
+
+}

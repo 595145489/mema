@@ -27,7 +27,9 @@ enum class SocketType{
     kIPV4 = 1,
     kIPV6 = 2
 };
-class FdChannel
+
+
+class FdChannel : noncopyable
 {
 
 struct index_uncomplete{
@@ -35,8 +37,7 @@ struct index_uncomplete{
     std::shared_ptr<ListBuffer> message;
 };
 
-
-
+typedef std::function<void(FdChannel*)> SetEventCallBack;
 typedef std::unordered_map<uint32_t,index_uncomplete>  UncompleteMessage;
 typedef std::function<void(std::shared_ptr<ListBuffer>& message)> ReadCallBack;
 
@@ -48,6 +49,7 @@ public:
     ~FdChannel();
 
     int GetFd();
+    void SetEventCallBackFunc(SetEventCallBack func){event_callback_func = func;};
     bool IsReventRead(){return revent_ & kReadEvent;}
     bool IsReventWrite(){return revent_ & kWriteEvent;}
     bool IsIndexNew(){ return index==IndexStatus::KNew; }
@@ -59,19 +61,23 @@ public:
     void SetAddrIpv4(std::shared_ptr<sockaddr>& addr);
     void SetAddrIpv6(std::shared_ptr<sockaddr>& addr);
 
-    void SetReadFd(){ event_ = kReadEvent;};
-    void SetWriteFd(){event_ = kWriteEvent;};
-    void SetWriteAndReadFd(){event_=kReadEvent|kWriteEvent;};
-    void AddReadFd(){event_ |= kReadEvent;};
-    void AddWriteFd(){event_ |= kWriteEvent;};
-    void DelReadFd(){event_ ^= kReadEvent;};
-    void DelWriteFd(){event_ ^= kWriteEvent;};
-    void SetNoEventFd(){event_=kNoneEvent;};
+    void SetReadFd(){ event_ = kReadEvent;event_callback_func(this);};
+    void SetWriteFd(){event_ = kWriteEvent;event_callback_func(this);};
+    void SetWriteAndReadFd(){event_=kReadEvent|kWriteEvent;event_callback_func(this);};
+
+    void AddReadFd(){event_ |= kReadEvent;event_callback_func(this);};
+    void AddWriteFd(){event_ |= kWriteEvent;event_callback_func(this);};
+    void DelReadFd(){event_ ^= kReadEvent;event_callback_func(this);};
+    void DelWriteFd(){event_ ^= kWriteEvent;event_callback_func(this);};
+
+    void SetNoEventFd(){event_=kNoneEvent;event_callback_func(this);};
     void SetRevent(int event){ revent_=event; };
 
     /* void OnRead(std::shared_ptr<ListBuffer>& message,ReadCallBack readcallbackfunc); */
     void UncompleteMessageCollectAndCompleteMessageDistribution(std::shared_ptr<ListBuffer>& message,int countofmessage,ReadCallBack readcallbackfunc);
+    void PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie);
 
+    void SendOps();
     void Send(std::string &str);
 private:
     static const int kNoneEvent;
@@ -86,6 +92,7 @@ private:
     SocketType addr_type;
     uint32_t current_number;
 
+    SetEventCallBack event_callback_func;
     UnwriteList unwritelist GUARDED_BY(unwritelist_lock);
     MutexLock unwritelist_lock;
     // using for read message;

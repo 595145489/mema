@@ -26,9 +26,6 @@ public:
     void Initialize() override;
     void OnHandle() override;
 
-    void SetReadFd(std::shared_ptr<FdChannel>& channel);
-    void SetWriteFd(std::shared_ptr<FdChannel>& channel);
-    void SetWriteAndReadFd(std::shared_ptr<FdChannel> channel);
 
     void OnConnection();
     void OnRead(FdChannel* channel);
@@ -39,7 +36,7 @@ private:
     void SetSocketReuseAddr(std::shared_ptr<FdChannel>& channel);
     void SetSocketReusePort(std::shared_ptr<FdChannel>& channel);
     /* void HandleActivity(FdChannel* activity_fd); */
-    void GetStatusAndSetUpdate(std::shared_ptr<FdChannel>& channel);
+    void GetStatusAndSetUpdate(FdChannel* channel);
 
     IovList GetIovec(int size); 
 

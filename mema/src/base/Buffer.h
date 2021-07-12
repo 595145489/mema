@@ -87,6 +87,9 @@ public:
         size_t size_ = std::strlen(s);
         append(s,size_);
     }
+    void append(std::string& s,size_t begin,size_t size_){
+        append(s.c_str()+begin,size_);
+    }
     self& operator<<(const char *s){
         append(s);
         return *this;
@@ -95,7 +98,7 @@ public:
         append(static_cast<char*>(&s),1);
         return *this;
     }
-    self& operator<<(std::string s){
+    self& operator<<(std::string& s){
         append(s.c_str(),s.size());
         return *this;
     }

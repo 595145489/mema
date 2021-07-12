@@ -31,6 +31,7 @@ ListenThread::ListenThread(std::shared_ptr<ThreadPool> pointer_poll,MemaBase* ba
 
 void ListenThread::Initialize()
 {
+    listen_channel->SetEventCallBackFunc(std::bind(&ListenThread::GetStatusAndSetUpdate,this,std::placeholders::_1));
     SetSocketReuseAddr(listen_channel);
     SetSocketReusePort(listen_channel);
     socket_link->CreateSocket(listen_channel.get(),addr_,port);
@@ -49,7 +50,7 @@ void ListenThread::OnHandle()
 {
     LOG_INFO("action handle");
     ChannelList activity_list;
-    return ;
+    /* return ; */
     for(;;){
         {
             std::shared_ptr<ThreadPool> temp = pointer_poll.lock();
@@ -123,35 +124,19 @@ void ListenThread::OnConnection()
 {
     auto addr_ipv6 = Socket::NewSockaddrIpv();
     std::shared_ptr<FdChannel> new_channel = std::make_shared<FdChannel>(Socket::AcceptFd(listen_channel->GetFd(),Socket::SocketaddrToSocketaddr6(addr_ipv6).get()));
+    new_channel->SetEventCallBackFunc(std::bind(&ListenThread::GetStatusAndSetUpdate,this,std::placeholders::_1));
     SetSocketReuseAddr(new_channel);
     SetSocketReusePort(new_channel);
-    SetReadFd(new_channel);
+    new_channel->SetReadFd();
+    /* SetReadFd(new_channel); */
     new_channel->SetIndexModify();
     new_channel->SetAddrIpv6(addr_ipv6);
     channel_list.emplace_back(new_channel);
 }
 
-void ListenThread::GetStatusAndSetUpdate(std::shared_ptr<FdChannel>& channel)
+void ListenThread::GetStatusAndSetUpdate(FdChannel* channel)
 {
     poller_->update(channel->IsIndexNew()?poller_->AddFlagFd():poller_->ModflagFd(),
                     channel);
-}
-
-void ListenThread::SetReadFd(std::shared_ptr<FdChannel>& channel)
-{
-    channel->SetReadFd();
-    GetStatusAndSetUpdate(channel);
-}
-
-void ListenThread::SetWriteFd(std::shared_ptr<FdChannel>& channel)
-{
-    channel->SetWriteFd();
-    GetStatusAndSetUpdate(channel);
-}
-
-void ListenThread::SetWriteAndReadFd(std::shared_ptr<FdChannel> channel)
-{
-    channel->SetWriteAndReadFd();
-    GetStatusAndSetUpdate(channel);
 }
 

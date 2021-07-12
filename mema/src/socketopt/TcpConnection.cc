@@ -17,7 +17,7 @@ TcpConnection::~TcpConnection()
 
 void TcpConnection::SetFdInitStatus(std::shared_ptr<FdChannel> handle_fd)
 {
-    listten_thread->SetWriteAndReadFd(handle_fd);
+    handle_fd->SetReadFd();
 }
 
 void TcpConnection::CreateSocket(FdChannel* handle_fd,const char* addr_,int port)

@@ -15,7 +15,7 @@ typedef std::vector<epoll_event> EventList;
 public:
     EPoller();
     ~EPoller();
-    void update(int operation,std::shared_ptr<FdChannel>& channel) override;
+    void update(int operation,FdChannel* channel) override;
     int WaitActivity(ChannelList &list_) override;
 
     int AddFlagFd() override {return EPOLL_CTL_ADD;};

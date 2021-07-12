@@ -6,8 +6,8 @@
 using namespace mema; 
 
 DEFINE_int32(PORT, 6002, "server listen port");
-/* DEFINE_string(SERVERADDR, "0.0.0.0", " if addr equal 0.0.0.0 the service will be server, else addr will be client "); */
-DEFINE_string(SERVERADDR, "192.168.43.251", " if addr equal 0.0.0.0 the service will be server, else addr will be client ");
+DEFINE_string(SERVERADDR, "0.0.0.0", " if addr equal 0.0.0.0 the service will be server, else addr will be client ");
+/* DEFINE_string(SERVERADDR, "192.168.43.251", " if addr equal 0.0.0.0 the service will be server, else addr will be client "); */
 
 int main()
 {

@@ -16,7 +16,7 @@ public:
     Poller(){} ;
     virtual ~Poller(){} ;
     static Poller* GetDefaultPoller();
-    virtual void update(int oeration,std::shared_ptr<FdChannel>& channel) = 0;
+    virtual void update(int oeration,FdChannel* channel) = 0;
     virtual int WaitActivity(ChannelList &list_) = 0;
     virtual int AddFlagFd() = 0;
     virtual int ModflagFd() = 0;

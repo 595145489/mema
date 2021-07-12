@@ -59,13 +59,13 @@ void EPoller::SetNoEventPoll()
     event_.events = 0;
 }
 
-void EPoller::update(int operation,std::shared_ptr<FdChannel>& channel)
+void EPoller::update(int operation,FdChannel* channel)
 {
     struct epoll_event event;
     int fd = channel->GetFd();
     LOG_INFO("update channel fd = " << fd);
     event.events = channel->Getevents();
-    event.data.ptr = channel.get();
+    event.data.ptr = channel;
     if(::epoll_ctl(epoll_fd,operation,fd,&event)){
         LOG_FATAL("Update epollfd:" << epoll_fd << " failure, fd number:" << fd << "errno code:" << errno);
     }

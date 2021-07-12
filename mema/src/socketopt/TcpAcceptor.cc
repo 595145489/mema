@@ -18,8 +18,9 @@ TcpAcceptor::~TcpAcceptor()
 
 void TcpAcceptor::SetFdInitStatus(std::shared_ptr<FdChannel> handle_fd)
 {
-    listten_thread->SetWriteAndReadFd(handle_fd);
+    handle_fd->SetReadFd();
 }
+
 void TcpAcceptor::CreateSocket(FdChannel* handle_fd,const char* addr_,int port)
 {
     auto addr_ipv4 = Socket::NewSockaddrIpv();
