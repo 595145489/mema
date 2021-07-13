@@ -13,7 +13,7 @@ DEFINE_string(SERVERADDR, "127.0.0.1", " if addr equal 0.0.0.0 the service will 
 class Client:public MemaBase {
 public:
     virtual void OnConnection(FdChannel* fd){
-        std::string x(4*500,'q');
+        std::string x(20*500,'q');
         fd->Send(x);
     }
 };

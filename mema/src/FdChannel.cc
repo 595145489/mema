@@ -49,21 +49,6 @@ int FdChannel::GetFd()
 }
 
 
-const char* GetHeaderNumber(ListBuffer::Itertor& iter) {
-    auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition());
-    iter.Get()->Seek(4);
-    return local; 
-};
-const char* GetHeaderIndex(ListBuffer::Itertor& iter) {
-    auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition());
-    iter.Get()->Seek(4);
-    return local; 
-};
-const char* GetHeaderCountof(ListBuffer::Itertor& iter) {
-    auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition());
-    iter.Get()->Seek(4);
-    return local; 
-};
 // first four char (first number is 1) are number then nest four char are the index of number .
 // if the index of number is the first flag that equal to 1 and should be take the count of number's messgae ;
 void FdChannel::UncompleteMessageCollectAndCompleteMessageDistribution(std::shared_ptr<ListBuffer>& message,int countofmessage,ReadCallBack readcallbackfunc)
@@ -73,149 +58,81 @@ void FdChannel::UncompleteMessageCollectAndCompleteMessageDistribution(std::shar
 
     ListBuffer::Itertor iter(message); 
 
-    /* std::function<const char*()> GetHeaderNumber = [&]()-> const char *{ */
-    /*     auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition()); */
-    /*     iter.Get()->Seek(4); */
-    /*     return local; */ 
-    /* }; */
-    /* std::function<const char*()> GetHeaderIndex = [&]()-> const char *{ */
-    /*     auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition()); */
-    /*     iter.Get()->Seek(4); */
-    /*     return local; */ 
-    /* }; */
-    /* std::function<const char*()>GetHeaderCountof = [&]()-> const char *{ */
-    /*     auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition()); */
-    /*     iter.Get()->Seek(4); */
-    /*     return local; */ 
-    /* }; */
+    std::function<const char*()> GetHeaderNumber = [&]()-> const char *{
+        auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition());
+        iter.Get()->Seek(4);
+        return local; 
+    };
+    std::function<const char*()> GetHeaderIndex = [&]()-> const char *{
+        auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition());
+        iter.Get()->Seek(4);
+        return local; 
+    };
+    std::function<const char*()>GetHeaderCountof = [&]()-> const char *{
+        auto local = reinterpret_cast<const char*>(iter.Get()->IterPosition());
+        iter.Get()->Seek(4);
+        return local; 
+    };
     uint32_t cache_number, cache_index, cache_number_of_all_message;
-    uint32_t number = mema::DecodeFixd32(GetHeaderNumber(iter));
+    uint32_t number = mema::DecodeFixd32(GetHeaderNumber());
     uint32_t countofallmessage = 1;
 
 
-   /* auto VariableSet = [&](){ */
-   /*      cache_number = number; */
-   /*      cache_index =  mema::DecodeFixd32(GetHeaderIndex()); */
-   /*      cache_number_of_all_message = FirstRequestFlag == cache_index?mema::DecodeFixd32(GetHeaderCountof()):NotFirstRequest; */
-   /*      countofallmessage = 1; */
-   /*      iter.Next(); */
-   /*  }; */
-   /*  auto MessagePass = [&](){ */
-   /*      //the message is uncomplete and restore in the unordered_map */
-   /*      if(cache_number_of_all_message==NotFirstRequest) */
-   /*      { */
-   /*          auto index_message = uncomplete_message.find(cache_number); */
-   /*          if(index_message==uncomplete_message.end()){ */
-   /*              LOG_FATAL("uncomplete message"); */
-   /*              return; */
-   /*          } */
-   /*          index_message->second.message->EmplaceBack(message,countofallmessage); */
-   /*          // if message has been completed , pass it to the readcallback */
-   /*          if(index_message->second.total_size == cache_index){ */
-   /*              readcallbackfunc(index_message->second.message); */
-   /*              uncomplete_message.erase(index_message); */
-   /*          } */
-   /*      } */
-   /*      // the message is complete and all the message in this message buffer; */
-   /*      else if(cache_number_of_all_message == cache_index){ */ 
-   /*          std::shared_ptr<ListBuffer> complete_message = std::make_shared<ListBuffer>(countofallmessage,message); */
-   /*          readcallbackfunc(complete_message); */
-   /*      } */
-   /*      //the message is uncomplete and should be instal into unordered_map */ 
-   /*      //if cache_number_of_all_message != cache_index */  
-   /*      else{ */ 
-   /*          auto index_message = uncomplete_message.find(cache_number); */
-   /*          if(index_message!=uncomplete_message.end()){ */
-   /*              LOG_FATAL("repeat number"); */
-   /*              return; */
-   /*          } */
-   /*          uncomplete_message[cache_number] = {cache_number_of_all_message,std::make_shared<ListBuffer>(countofallmessage,message)}; */
-   /*      } */
-   /*  }; */
+   auto VariableSet = [&](){
+        cache_number = number;
+        cache_index =  mema::DecodeFixd32(GetHeaderIndex());
+        cache_number_of_all_message = FirstRequestFlag == cache_index?mema::DecodeFixd32(GetHeaderCountof()):NotFirstRequest;
+        countofallmessage = 1;
+        iter.Next();
+    };
+    auto MessagePass = [&](){
+        //the message is uncomplete and restore in the unordered_map
+        if(cache_number_of_all_message==NotFirstRequest)
+        {
+            auto index_message = uncomplete_message.find(cache_number);
+            if(index_message==uncomplete_message.end()){
+                LOG_FATAL("uncomplete message");
+                return;
+            }
+            index_message->second.message->EmplaceBack(message,countofallmessage);
+            // if message has been completed , pass it to the readcallback
+            if(index_message->second.total_size == cache_index){
+                readcallbackfunc(index_message->second.message);
+                uncomplete_message.erase(index_message);
+            }
+        }
+        // the message is complete and all the message in this message buffer;
+        else if(cache_number_of_all_message == cache_index){ 
+            std::shared_ptr<ListBuffer> complete_message = std::make_shared<ListBuffer>(countofallmessage,message);
+            readcallbackfunc(complete_message);
+        }
+        //the message is uncomplete and should be instal into unordered_map 
+        //if cache_number_of_all_message != cache_index  
+        else{ 
+            auto index_message = uncomplete_message.find(cache_number);
+            if(index_message!=uncomplete_message.end()){
+                LOG_FATAL("repeat number");
+                return;
+            }
+            uncomplete_message[cache_number] = {cache_number_of_all_message,std::make_shared<ListBuffer>(countofallmessage,message)};
+        }
+    };
 
     
     //FIrst Time
-    /* VariableSet(); */
-        cache_number = number;
-        cache_index =  mema::DecodeFixd32(GetHeaderIndex(iter));
-        cache_number_of_all_message = FirstRequestFlag == cache_index?mema::DecodeFixd32(GetHeaderCountof(iter)):NotFirstRequest;
-        countofallmessage = 1;
-        iter.Next();
+    VariableSet();
     for(int count = 1;iter.Vaild() && countofmessage > count ;++count){
-        number = mema::DecodeFixd32(GetHeaderNumber(iter));
+        number = mema::DecodeFixd32(GetHeaderNumber());
         if(cache_number == number){
-            cache_index = mema::DecodeFixd32(GetHeaderIndex(iter));
+            cache_index = mema::DecodeFixd32(GetHeaderIndex());
             ++countofallmessage;
             iter.Next();
             continue;
         }
-        if(cache_number_of_all_message==NotFirstRequest)
-        {
-            auto index_message = uncomplete_message.find(cache_number);
-            if(index_message==uncomplete_message.end()){
-                LOG_FATAL("uncomplete message");
-                return;
-            }
-            index_message->second.message->EmplaceBack(message,countofallmessage);
-            // if message has been completed , pass it to the readcallback
-            if(index_message->second.total_size == cache_index){
-                readcallbackfunc(index_message->second.message);
-                uncomplete_message.erase(index_message);
-            }
-        }
-        // the message is complete and all the message in this message buffer;
-        else if(cache_number_of_all_message == cache_index){ 
-            std::shared_ptr<ListBuffer> complete_message = std::make_shared<ListBuffer>(countofallmessage,message);
-            readcallbackfunc(complete_message);
-        }
-        //the message is uncomplete and should be instal into unordered_map 
-        //if cache_number_of_all_message != cache_index  
-        else{ 
-            auto index_message = uncomplete_message.find(cache_number);
-            if(index_message!=uncomplete_message.end()){
-                LOG_FATAL("repeat number");
-                return;
-            }
-            uncomplete_message[cache_number] = {cache_number_of_all_message,std::make_shared<ListBuffer>(countofallmessage,message)};
-        }
-        /* MessagePass(); */
-        /* VariableSet(); */
-        cache_number = number;
-        cache_index =  mema::DecodeFixd32(GetHeaderIndex(iter));
-        cache_number_of_all_message = FirstRequestFlag == cache_index?mema::DecodeFixd32(GetHeaderCountof(iter)):NotFirstRequest;
-        countofallmessage = 1;
-        iter.Next();
+        MessagePass();
+        VariableSet();
     }
-        if(cache_number_of_all_message==NotFirstRequest)
-        {
-            auto index_message = uncomplete_message.find(cache_number);
-            if(index_message==uncomplete_message.end()){
-                LOG_FATAL("uncomplete message");
-                return;
-            }
-            index_message->second.message->EmplaceBack(message,countofallmessage);
-            // if message has been completed , pass it to the readcallback
-            if(index_message->second.total_size == cache_index){
-                readcallbackfunc(index_message->second.message);
-                uncomplete_message.erase(index_message);
-            }
-        }
-        // the message is complete and all the message in this message buffer;
-        else if(cache_number_of_all_message == cache_index){ 
-            std::shared_ptr<ListBuffer> complete_message = std::make_shared<ListBuffer>(countofallmessage,message);
-            readcallbackfunc(complete_message);
-        }
-        //the message is uncomplete and should be instal into unordered_map 
-        //if cache_number_of_all_message != cache_index  
-        else{ 
-            auto index_message = uncomplete_message.find(cache_number);
-            if(index_message!=uncomplete_message.end()){
-                LOG_FATAL("repeat number");
-                return;
-            }
-            uncomplete_message[cache_number] = {cache_number_of_all_message,std::make_shared<ListBuffer>(countofallmessage,message)};
-        }
-    /* MessagePass(); */
+    MessagePass();
     return;
 }
 
