@@ -34,6 +34,7 @@ void TcpAcceptor::HandleActivity(FdChannel* activity_fd)
 {
     if(activity_fd==listten_thread->GetListenFd()){
         listten_thread->OnConnection();
+        activity_fd->OnConnection();
     }
     else if(activity_fd->IsReventRead()){
         listten_thread->OnRead(activity_fd);

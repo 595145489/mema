@@ -8,10 +8,10 @@ class MemaBase
 public:
     MemaBase() {}
     ~MemaBase() {}
-    void OnConnection(FdChannel* fd){
-        std::string x(500*10,'q');
+    virtual void OnConnection(FdChannel* fd){
+        /* std::string x(500*4,'q'); */
         /* std::string x; */
-        fd->Send(x);
+        /* fd->Send(x); */
     }
 
 private:

@@ -149,9 +149,6 @@ public:
         SetEnd();
         current_position = begin();
     }
-    size_t GetMaxSize(){
-        return buffer_max_size-1;
-    }
     bool SetSize(size_t insert_size){
         if(insert_size>freesize){
             return false;

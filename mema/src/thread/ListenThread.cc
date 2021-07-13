@@ -52,7 +52,6 @@ void ListenThread::OnHandle()
 {
     LOG_INFO("action handle");
     ChannelList activity_list;
-    /* return ; */
     for(;;){
         {
             std::shared_ptr<ThreadPool> temp = pointer_poll.lock();
@@ -93,13 +92,14 @@ void ListenThread::OnRead(FdChannel* channel)
     ListenThread::IovList iov =  GetIovec(4,list_buffer);
     ssize_t size = Socket::Recdv(channel->GetFd(),&*(iov.begin()),4);
     ListBuffer::Itertor iter(list_buffer);
-    ssize_t epoch_size = iter.Get()->GetMaxSize();
+    ssize_t epoch_size = iter.Get()->GetDefaultMaxSize();
     int countofmessage = 0;
     do{
         if(!iter.Get()->SetSize(epoch_size>size?size:epoch_size))
             LOG_FATAL("no have enough size");
         size -= epoch_size;         
         ++countofmessage;
+        iter.Next();
     }while(iter.Vaild() && size>0);
     std::shared_ptr<ListBuffer> message = std::make_shared<ListBuffer>(countofmessage,list_buffer);
     channel->UncompleteMessageCollectAndCompleteMessageDistribution(message,countofmessage,
@@ -138,7 +138,6 @@ void ListenThread::OnConnection()
     SetSocketReuseAddr(new_channel);
     SetSocketReusePort(new_channel);
     new_channel->SetReadFd();
-    /* SetReadFd(new_channel); */
     new_channel->SetIndexModify();
     new_channel->SetAddrIpv6(addr_ipv6);
     channel_list.emplace_back(new_channel);

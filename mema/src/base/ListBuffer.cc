@@ -52,10 +52,10 @@ void ListBuffer::EmplaceBackAndClear(std::shared_ptr<ListBuffer> cache_buffer,in
 }
 
 
-ListBuffer::Itertor::Itertor(std::shared_ptr<ListBuffer>& list_):list_(list_),
+ListBuffer::Itertor::Itertor(std::shared_ptr<ListBuffer> list_):list_(list_),
                                                               Iter(list_->list_buffer.begin()) { }
 
-ListBuffer::Itertor::Itertor(Itertor& iter_):list_(iter_.list_),
+ListBuffer::Itertor::Itertor(const Itertor& iter_):list_(iter_.list_),
                                               Iter(iter_.Iter) { }
 
 void ListBuffer::Itertor::operator=(Itertor& iter_)

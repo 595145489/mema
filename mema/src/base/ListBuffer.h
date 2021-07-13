@@ -30,8 +30,8 @@ public:
     /* // todo */ 
     class Itertor{
     public:
-        Itertor(std::shared_ptr<ListBuffer>& list_);
-        Itertor(Itertor& iter_);
+        Itertor(std::shared_ptr<ListBuffer> list_);
+        Itertor(const Itertor& iter_);
         void operator=(Itertor& iter_);
         bool Vaild() const;
         void Next() ;
