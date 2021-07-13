@@ -28,8 +28,8 @@ WriteBuffer* WriteBuffer::GetDefaultWriter(uint32_t number_,std::string& buffer)
 uint32_t WriteBuffer::InsertoBuffer(struct LocalWriteParm& parm,std::shared_ptr<ListBuffer> buffer)  
 {
     auto iter = ListBuffer::Itertor(buffer);
-    uint32_t list_count = 0;
-    for(;iter.Vaild()&&list_count<parm.local_send_count&&parm.local_send_count;list_count++,iter.Next())
+    uint32_t list_count = parm.local_send_count;
+    for(;iter.Vaild()&&list_count>0;list_count--,iter.Next())
        InsertoBuffer(parm,iter.Get().get()); 
     return list_count;
 }

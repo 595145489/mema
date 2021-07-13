@@ -121,9 +121,11 @@ void ListenThread::OnWrite(FdChannel* channel)
     std::shared_ptr<ListBuffer> current_buffer = list_buffer->GetNewBuffer(4);
     ListenThread::IovList iov =  GetIovec(4,current_buffer);
     int real_buffer_size = channel->PrepareWriteBuffer(current_buffer,4);
-    if(real_buffer_size>0)
+    if(real_buffer_size>0){
         ssize_t size = Socket::Writev(channel->GetFd(),&*(iov.begin()),real_buffer_size);
+    }
     list_buffer->EmplaceBackAndClear(current_buffer,4);
+    channel->ReductFullWriting(real_buffer_size);
 }
 
 void ListenThread::OnConnection()

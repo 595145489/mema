@@ -32,9 +32,9 @@ public:
     /*     std::cout << "creat buffer" << std::endl; */
     /*     vchar[size] = '\0'; */
     /* } */
-    Buffer(int size):buffer_max_size(size),
-                     freesize(size-1), 
-                     vchar(size),
+    Buffer(int size):buffer_max_size(size+1),
+                     freesize(size), 
+                     vchar(size+1),
                      size(0),
                      current_position(begin())
     {

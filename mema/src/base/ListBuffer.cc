@@ -5,7 +5,7 @@
 using namespace mema;
 
 ListBuffer::ListBuffer(int buffer_size,uint32_t per_buffer_size): total_size(buffer_size),
-                                                                                                list_buffer(0)
+                                                                  list_buffer(0)
 {
     for(int count = 0 ;count < buffer_size; ++count){
         list_buffer.emplace_back(new Buffer(per_buffer_size));

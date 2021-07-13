@@ -33,7 +33,7 @@ public:
         }
         else{
             parm.local_send_count = message_size;
-            parm.local_remain_size = remain_size - message_size * (per_buffer_max_size - header_size)  ;
+            parm.local_remain_size = message_size * (per_buffer_max_size - header_size)  ;
             if(current_send_index == 1)
                 parm.local_remain_size -= 4;
         }

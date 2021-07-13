@@ -76,6 +76,7 @@ public:
     /* void OnRead(std::shared_ptr<ListBuffer>& message,ReadCallBack readcallbackfunc); */
     void UncompleteMessageCollectAndCompleteMessageDistribution(std::shared_ptr<ListBuffer>& message,int countofmessage,ReadCallBack readcallbackfunc);
     int PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie);
+    void ReductFullWriting(int reduce_size);
 
     void SendOps();
     void Send(std::string &str);
@@ -94,6 +95,7 @@ private:
     SocketType addr_type;
     uint32_t current_number;
 
+    int full_writing GUARDED_BY(unwritelist_lock);
     SetEventCallBack event_callback_func;
     UnwriteList unwritelist GUARDED_BY(unwritelist_lock);
     MutexLock unwritelist_lock;

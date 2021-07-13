@@ -9,7 +9,8 @@ public:
     MemaBase() {}
     ~MemaBase() {}
     void OnConnection(FdChannel* fd){
-        std::string x("123");
+        std::string x(500*10,'q');
+        /* std::string x; */
         fd->Send(x);
     }
 

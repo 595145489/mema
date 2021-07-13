@@ -22,6 +22,7 @@ FdChannel::FdChannel(int fd_,MemaBase* base):socket_fd(fd_),
                               addr_(nullptr),
                               addr_type(SocketType::kNone),
                               current_number(1),
+                              full_writing(0),
                               base_(base) { }
 
 void FdChannel::SetAddrIpv4(std::shared_ptr<sockaddr>& addr)
@@ -142,13 +143,15 @@ void FdChannel::SendOps()
 
 void FdChannel::Send(std::string &str)
 {
-    SendOps();
+    if(str.size()<=0)
+        return;
     shared_ptr<WriteBuffer> writer = std::make_shared<WriteStringBuffer>(current_number,str);
     {
         MutexLockGuard lock_(unwritelist_lock);
+        full_writing+=writer->GetRemainCount();
         unwritelist.emplace_back(writer);
+        SendOps();
     }
-    AddWriteFd();
 }
 
 
@@ -158,19 +161,28 @@ int FdChannel::PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int messa
     LocalWriteParm parm;
     {
         MutexLockGuard lock_(unwritelist_lock);
-        if(unwritelist.empty()){
-            DelWriteFd();
+        if(unwritelist.empty())
             return 0;
-        }
         writer_cache = unwritelist.front();
         writer_cache->GetlocalParm(parm,message_szie);
-        if(writer_cache->HaveRemainCount())
+        if(!writer_cache->HaveRemainCount())
             unwritelist.pop_front();
     }
     int return_write_buffer = parm.local_send_count;
     writer_cache->InsertoBuffer(parm,message);
     return return_write_buffer;
 }
+
+void FdChannel::ReductFullWriting(int reduce_size)
+{
+    {
+        MutexLockGuard lock_(unwritelist_lock);
+        full_writing-=reduce_size;
+        if(full_writing<=0)
+            DelWriteFd();
+    }
+}
+
 
 void FdChannel::OnConnection()
 {
