@@ -39,7 +39,8 @@ struct index_uncomplete{
 
 typedef std::function<void(FdChannel*)> SetEventCallBack;
 typedef std::unordered_map<uint32_t,index_uncomplete>  UncompleteMessage;
-typedef std::function<void(std::shared_ptr<ListBuffer>& message)> ReadCallBack;
+typedef std::function<void(FdChannel*,std::shared_ptr<ListBuffer>& message)> ReadCallBack;
+typedef std::function<void(std::shared_ptr<ListBuffer>& message)> MessageRetrieveCallBack;
 
 typedef std::deque<std::shared_ptr<WriteBuffer>>  UnwriteList;
 /* friend class ListenThread; */
@@ -82,6 +83,7 @@ public:
     void Send(std::string &str);
 
     void OnConnection();
+    void OnRead(std::shared_ptr<ListBuffer> message,MessageRetrieveCallBack);
 private:
     static const int kNoneEvent;
     static const int kReadEvent;

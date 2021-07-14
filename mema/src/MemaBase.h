@@ -8,14 +8,9 @@ class MemaBase
 public:
     MemaBase() {}
     ~MemaBase() {}
-    virtual void OnConnection(FdChannel* fd){
-        /* std::string x(500*4,'q'); */
-        /* std::string x; */
-        /* fd->Send(x); */
-    }
-
-private:
-
+    virtual void OnConnection(FdChannel* fd){};
+    virtual void OnRead(FdChannel* fd,std::shared_ptr<ListBuffer> message){};
+    virtual void OnWrite(FdChannel* fd){};
 public:
 };
 

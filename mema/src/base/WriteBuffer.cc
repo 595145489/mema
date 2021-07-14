@@ -20,6 +20,25 @@ WriteBuffer::~WriteBuffer()
 
 }
 
+void WriteBuffer::GetlocalParm(struct LocalWriteParm& parm,uint32_t message_size){
+    parm.local_current_send_index = current_send_index;
+    parm.local_count_of_remain_message = count_of_remain_message;
+    parm.local_send_position = send_position;
+    if(count_of_remain_message<message_size){
+        parm.local_send_count = count_of_remain_message;
+        parm.local_remain_size = remain_size;
+    }
+    else{
+        parm.local_send_count = message_size;
+        parm.local_remain_size = message_size * (per_buffer_max_size - header_size)  ;
+        if(current_send_index == 1)
+            parm.local_remain_size -= 4;
+    }
+    DeductionRemainSie(parm.local_remain_size);
+    IncreaseSendPosition(parm.local_remain_size);
+    DeductionCount(parm.local_send_count);
+    IncreaseIndex(parm.local_send_count);
+}
 WriteBuffer* WriteBuffer::GetDefaultWriter(uint32_t number_,std::string& buffer)
 {
     return new WriteStringBuffer(number_,buffer);
@@ -37,7 +56,6 @@ uint32_t WriteBuffer::InsertoBuffer(struct LocalWriteParm& parm,std::shared_ptr<
 
 WriteStringBuffer::WriteStringBuffer(uint32_t number_,std::string& buffer):WriteBuffer(number_),
                                                                            buffer_(std::move(buffer))
-                                                                           
 {
     remain_size = buffer_.size();
     // remain_size + 4 is the first buffer need to add total count of message
@@ -53,7 +71,10 @@ WriteStringBuffer::~WriteStringBuffer()
 
 void WriteStringBuffer::InsertoBuffer(struct LocalWriteParm& parm,Buffer* buffer)
 {
-    uint32_t total_header_size = header_size;
+    uint32_t total_header_size = 0;
+    total_header_size = header_size;
+
+
     buffer->append(header.get(),4);
     char index_c[4];
 

@@ -97,14 +97,14 @@ void FdChannel::UncompleteMessageCollectAndCompleteMessageDistribution(std::shar
             index_message->second.message->EmplaceBack(message,countofallmessage);
             // if message has been completed , pass it to the readcallback
             if(index_message->second.total_size == cache_index){
-                readcallbackfunc(index_message->second.message);
+                readcallbackfunc(this,index_message->second.message);
                 uncomplete_message.erase(index_message);
             }
         }
         // the message is complete and all the message in this message buffer;
         else if(cache_number_of_all_message == cache_index){ 
             std::shared_ptr<ListBuffer> complete_message = std::make_shared<ListBuffer>(countofallmessage,message);
-            readcallbackfunc(complete_message);
+            readcallbackfunc(this,complete_message);
         }
         //the message is uncomplete and should be instal into unordered_map 
         //if cache_number_of_all_message != cache_index  
@@ -187,5 +187,11 @@ void FdChannel::ReductFullWriting(int reduce_size)
 void FdChannel::OnConnection()
 {
     base_->OnConnection(this);
+}
+
+void FdChannel::OnRead(std::shared_ptr<ListBuffer> message,MessageRetrieveCallBack)
+{
+    base_->OnRead(this,message);
+
 }
 

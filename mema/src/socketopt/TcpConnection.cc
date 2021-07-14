@@ -15,7 +15,7 @@ TcpConnection::~TcpConnection()
 
 }
 
-void TcpConnection::SetFdInitStatus(std::shared_ptr<FdChannel> handle_fd)
+void TcpConnection::SetFdInitStatus(FdChannel* handle_fd)
 {
     handle_fd->SetReadFd();
 }
@@ -26,6 +26,9 @@ void TcpConnection::CreateSocket(FdChannel* handle_fd,const char* addr_,int port
     Socket::SetSocketAddrIpv(*(Socket::SocketaddrToSocketaddrin(addr_ipv4).get()),port,addr_);
     Socket::Connect(handle_fd->GetFd(),addr_ipv4.get());
     handle_fd->SetAddrIpv4(addr_ipv4);
+    SetFdInitStatus(handle_fd);
+    handle_fd->SetIndexModify();
+    handle_fd->OnConnection();
 }
 
 void TcpConnection::HandleActivity(FdChannel* activity_fd)

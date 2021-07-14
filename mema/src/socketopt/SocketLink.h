@@ -15,7 +15,7 @@ public:
     virtual ~SocketLink(); 
 
     virtual int GetSocketFd() ;
-    virtual void SetFdInitStatus(std::shared_ptr<FdChannel> handle_fd) = 0;
+    virtual void SetFdInitStatus(FdChannel* handle_fd) = 0;
     virtual void CreateSocket(FdChannel* handle_fd,const char* addr_,int port) = 0;
     virtual void HandleActivity(FdChannel* activity_fd) = 0;
 protected:

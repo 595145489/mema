@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <vector>
+#include <set>
 #include <fcntl.h>
 
 namespace mema{
@@ -16,7 +17,7 @@ class SocketLink;
 
 class ListenThread :public Thread
 {
-typedef std::vector<std::shared_ptr<FdChannel>> ChannelSave;
+typedef std::map<int,std::shared_ptr<FdChannel>> ChannelSave;
 typedef std::vector<struct iovec> IovList; 
 public:
     ListenThread(std::shared_ptr<ThreadPool> pointer_poll,MemaBase* base_);
@@ -30,7 +31,9 @@ public:
     void OnConnection();
     void OnRead(FdChannel* channel);
     void OnWrite(FdChannel* channel);
+    void OnClose(FdChannel* channel);
 
+    void ReadCompleteMessage();
     FdChannel* GetListenFd();
 private:
     void SetSocketReuseAddr(std::shared_ptr<FdChannel>& channel);
@@ -41,7 +44,7 @@ private:
     IovList GetIovec(int size,std::shared_ptr<ListBuffer>& list_); 
 
     void OnReadCallBackFunc(std::shared_ptr<ListBuffer>& message_buffer);
-    void InsertCompleteMessage(std::shared_ptr<ListBuffer>& message_buffer);
+    void InsertCompleteMessage(FdChannel* fd,std::shared_ptr<ListBuffer>& message_buffer);
 private:
     bool create_flag;
     MemaBase* base_;
@@ -54,7 +57,7 @@ private:
     std::shared_ptr<FdChannel> listen_channel;
     std::shared_ptr<ListBuffer> list_buffer; 
     ChannelSave channel_list;
-    std::vector<std::shared_ptr<ListBuffer>> unhandle_message;
+    std::vector<std::pair<FdChannel*,std::shared_ptr<ListBuffer>>> unhandle_message;
 };
 
 }// end namespace

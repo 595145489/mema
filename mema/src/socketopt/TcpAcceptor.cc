@@ -16,7 +16,7 @@ TcpAcceptor::~TcpAcceptor()
 
 }
 
-void TcpAcceptor::SetFdInitStatus(std::shared_ptr<FdChannel> handle_fd)
+void TcpAcceptor::SetFdInitStatus(FdChannel* handle_fd)
 {
     handle_fd->SetReadFd();
 }
@@ -28,13 +28,14 @@ void TcpAcceptor::CreateSocket(FdChannel* handle_fd,const char* addr_,int port)
     Socket::BindFdToPort(handle_fd->GetFd(),addr_ipv4.get());
     Socket::ListenFd(handle_fd->GetFd());
     handle_fd->SetAddrIpv4(addr_ipv4);
+    SetFdInitStatus(handle_fd);
+    handle_fd->SetIndexModify();
 }
 
 void TcpAcceptor::HandleActivity(FdChannel* activity_fd)
 {
     if(activity_fd==listten_thread->GetListenFd()){
         listten_thread->OnConnection();
-        activity_fd->OnConnection();
     }
     else if(activity_fd->IsReventRead()){
         listten_thread->OnRead(activity_fd);

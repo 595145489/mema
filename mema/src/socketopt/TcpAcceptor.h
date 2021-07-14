@@ -9,7 +9,7 @@ public:
     TcpAcceptor(ListenThread *thread);
     ~TcpAcceptor();
 
-    void SetFdInitStatus(std::shared_ptr<FdChannel> handle_fd) override;
+    void SetFdInitStatus(FdChannel* handle_fd) override;
     void CreateSocket(FdChannel* handle_fd,const char* addr_,int port) override;
     void HandleActivity(FdChannel* activity_fd) override;
 private:

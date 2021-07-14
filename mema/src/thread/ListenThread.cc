@@ -36,9 +36,9 @@ void ListenThread::Initialize()
     SetSocketReuseAddr(listen_channel);
     SetSocketReusePort(listen_channel);
     socket_link->CreateSocket(listen_channel.get(),addr_,port);
-    socket_link->SetFdInitStatus(listen_channel);
-    listen_channel->SetIndexModify();
-    listen_channel->OnConnection();
+    /* socket_link->SetFdInitStatus(listen_channel); */
+    /* listen_channel->SetIndexModify(); */
+    /* listen_channel->OnConnection(); */
     create_flag=true;
 }
 
@@ -91,6 +91,9 @@ void ListenThread::OnRead(FdChannel* channel)
     LOG_INFO("begin read");
     ListenThread::IovList iov =  GetIovec(4,list_buffer);
     ssize_t size = Socket::Recdv(channel->GetFd(),&*(iov.begin()),4);
+    if(size==0){
+        OnClose(channel);
+    }
     ListBuffer::Itertor iter(list_buffer);
     ssize_t epoch_size = iter.Get()->GetDefaultMaxSize();
     int countofmessage = 0;
@@ -103,16 +106,24 @@ void ListenThread::OnRead(FdChannel* channel)
     }while(iter.Vaild() && size>0);
     std::shared_ptr<ListBuffer> message = std::make_shared<ListBuffer>(countofmessage,list_buffer);
     channel->UncompleteMessageCollectAndCompleteMessageDistribution(message,countofmessage,
-                                                                    std::bind(&ListenThread::InsertCompleteMessage,this,std::placeholders::_1));
+                                                                    std::bind(&ListenThread::InsertCompleteMessage,this,std::placeholders::_1,std::placeholders::_2));
 }
 
-void ListenThread::InsertCompleteMessage(std::shared_ptr<ListBuffer>& message_buffer)
+void ListenThread::ReadCompleteMessage()
 {
-    unhandle_message.emplace_back(message_buffer);
+    for(auto&iter:unhandle_message){
+        iter.first->OnRead(iter.second,std::bind(&ListenThread::OnReadCallBackFunc,this,std::placeholders::_1));
+    }
+    unhandle_message.clear();
+}
+
+void ListenThread::InsertCompleteMessage(FdChannel* fd,std::shared_ptr<ListBuffer>& message_buffer)
+{
+    unhandle_message.emplace_back(std::pair<FdChannel*,std::shared_ptr<ListBuffer>>(fd,message_buffer));
 }
 void ListenThread::OnReadCallBackFunc(std::shared_ptr<ListBuffer>& message_buffer)
 {
-    /* list_buffer->EmplaceBackAndClear(message_buffer,message_buffer->GetTotalSize()); */
+    list_buffer->EmplaceBackAndClear(message_buffer,message_buffer->GetTotalSize());
 }
 
 void ListenThread::OnWrite(FdChannel* channel)
@@ -140,12 +151,21 @@ void ListenThread::OnConnection()
     new_channel->SetReadFd();
     new_channel->SetIndexModify();
     new_channel->SetAddrIpv6(addr_ipv6);
-    channel_list.emplace_back(new_channel);
+    new_channel->OnConnection();
+    channel_list.insert({new_channel->GetFd(),new_channel});
 }
 
 void ListenThread::GetStatusAndSetUpdate(FdChannel* channel)
 {
     poller_->update(channel->IsIndexNew()?poller_->AddFlagFd():poller_->ModflagFd(),
                     channel);
+}
+
+void ListenThread::OnClose(FdChannel* channel)
+{
+    channel->SetNoEventFd();
+    //here must to make sure that Fd delete is safe 
+    poller_->update(poller_->DelFlagFd(),channel);
+    channel_list.erase(channel->GetFd());
 }
 
