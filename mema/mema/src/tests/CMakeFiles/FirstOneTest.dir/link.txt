@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/FirstOneTest.dir/FirstOneTest.cc.o  -o FirstOneTest ../libmema_base.a ../base/libmema_base_lib.a -lpthread ../thirdparty/gflags/libgflags_nothreads.a 

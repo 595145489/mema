@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/TestBaseSocket.dir/TestBaseSocket.cc.o  -o TestBaseSocket ../libmema_base.a ../base/libmema_base_lib.a -lpthread ../thirdparty/gflags/libgflags_nothreads.a 
