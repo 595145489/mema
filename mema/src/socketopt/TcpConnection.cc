@@ -41,3 +41,10 @@ void TcpConnection::HandleActivity(FdChannel* activity_fd)
     }
 }
 
+void TcpConnection::CloseFd(FdChannel* activity_fd)
+{
+    Socket::CloseFd(activity_fd->GetFd());
+    listten_thread->CloseRunning();
+    listten_thread->OnClose(activity_fd);
+}
+

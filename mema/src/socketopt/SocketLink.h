@@ -18,6 +18,7 @@ public:
     virtual void SetFdInitStatus(FdChannel* handle_fd) = 0;
     virtual void CreateSocket(FdChannel* handle_fd,const char* addr_,int port) = 0;
     virtual void HandleActivity(FdChannel* activity_fd) = 0;
+    virtual void CloseFd(FdChannel* activity_fd) = 0;
 protected:
     ListenThread* listten_thread;
 };

@@ -5,13 +5,10 @@
 #include "src/thirdparty/gflags/include/gflags/gflags.h"
 
 //just debug
-#include <iostream>
-
 #include <cstring>
 #include <string>
 #include <vector>
 #include <endian.h>
-
 
 DECLARE_int32(PROTOCAL_SIZE);
 
@@ -36,9 +33,9 @@ public:
                      freesize(size), 
                      vchar(size+1),
                      size(0),
-                     current_position(begin())
+                     current_position(begin()),
+                     current_position_size(0)
     {
-        std::cout << "creat buffer" << std::endl;
         vchar[size] = '\0';
     }
     ~Buffer() {
@@ -53,6 +50,10 @@ public:
         std::string str(begin(),size);
         return std::move(str);
     }
+    std::string GetCurrentPositionString(){
+        std::string str(current_position,size-current_position_size);
+        return std::move(str);
+    }
     size_t FreeSize(){
         return freesize;
     }
@@ -61,6 +62,7 @@ public:
     }
     void Seek(int size){
         current_position+=size;
+        current_position_size+=size;
     }
     char* IterPosition(){
         return current_position;
@@ -148,6 +150,7 @@ public:
         freesize = buffer_max_size-1; 
         SetEnd();
         current_position = begin();
+        current_position_size = 0;
     }
     bool SetSize(size_t insert_size){
         if(insert_size>freesize){
@@ -181,6 +184,7 @@ private:
     CharType vchar;
     size_t size;
     char* current_position;
+    uint32_t current_position_size;
     
 };
 }// end namespace

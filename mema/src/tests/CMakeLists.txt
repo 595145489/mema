@@ -7,8 +7,8 @@ target_link_libraries(TestBaseSocket PRIVATE  mema_base)
 add_executable(LogTest LogTest.cc)
 target_link_libraries(LogTest PRIVATE mema_base)
 
-add_executable(TestThreadPool TestThreadPool.cc)
-target_link_libraries(TestThreadPool PRIVATE mema_base)
+add_executable(Server Server.cc)
+target_link_libraries(Server PRIVATE mema_base)
 
-add_executable(Client TestThreadPool1.cc)
+add_executable(Client Client.cc)
 target_link_libraries(Client PRIVATE mema_base)

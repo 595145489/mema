@@ -35,6 +35,7 @@ public:
 
     void ReadCompleteMessage();
     FdChannel* GetListenFd();
+    void CloseRunning();
 private:
     void SetSocketReuseAddr(std::shared_ptr<FdChannel>& channel);
     void SetSocketReusePort(std::shared_ptr<FdChannel>& channel);
@@ -43,7 +44,7 @@ private:
 
     IovList GetIovec(int size,std::shared_ptr<ListBuffer>& list_); 
 
-    void OnReadCallBackFunc(std::shared_ptr<ListBuffer>& message_buffer);
+    void OnReadCallBackFunc(std::shared_ptr<ListBuffer> message_buffer);
     void InsertCompleteMessage(FdChannel* fd,std::shared_ptr<ListBuffer>& message_buffer);
 private:
     bool create_flag;

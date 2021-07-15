@@ -45,3 +45,8 @@ void TcpAcceptor::HandleActivity(FdChannel* activity_fd)
     }
 }
 
+void TcpAcceptor::CloseFd(FdChannel* activity_fd)
+{
+    listten_thread->OnClose(activity_fd);
+}
+

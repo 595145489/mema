@@ -189,9 +189,21 @@ void FdChannel::OnConnection()
     base_->OnConnection(this);
 }
 
-void FdChannel::OnRead(std::shared_ptr<ListBuffer> message,MessageRetrieveCallBack)
+void FdChannel::OnRead(std::shared_ptr<ListBuffer> message,MessageRetrieveCallBack callback)
 {
-    base_->OnRead(this,message);
+    /* base_->OnRead(this,message); */
+    std::string message_to_s;
+    ListBuffer::Itertor iter(message);
+    for(;iter.Vaild();iter.Next()){
+        message_to_s+=iter.Get()->GetCurrentPositionString();
+    }
+    base_->OnRead(this,message_to_s);
+    callback();
+}
 
+void FdChannel::OnClose()
+{
+    base_->OnClose(this);
+    close_callback_func();
 }
 

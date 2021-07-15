@@ -65,7 +65,7 @@ void ListBuffer::Itertor::operator=(Itertor& iter_)
 
 bool ListBuffer::Itertor::Vaild() const
 {
-    return list_->total_size>0; 
+    return list_->list_buffer.end()!=Iter; 
 }
 
 void ListBuffer::Itertor::Next() 
