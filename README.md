@@ -65,11 +65,11 @@ DEFINE_string(SERVERADDR, "X.X.X.X", " if addr equal 0.0.0.0 the service will be
 DEFINE_int32(PORT, xxxx, "server listen port");
 ```
 ## 线程模型概述
-mame v1.0.0测试版的服务端通信采用one-loop-per-thread线程模型,该模型拥有较好的支持高并发的能力(理论上)。<br><br>
+mema v1.0.0测试版的服务端通信采用one-loop-per-thread线程模型,该模型拥有较好的支持高并发的能力(理论上)。<br><br>
 现阶段允许对服务的线程数进行设置AddNewThread<ListenThread>(server,N)，N为线程数大小（理论上应该为核心数量，但是本框架不强制要求）。其理论上对i/o密集型友好，但是对计算密集型的任务并不友好。<br><br>
 为此mema已留出扩展，将补充线程池，以提供计算密集型的支持，将来将为N个接受线程提供M个线程池以供非并发。于此同时，为了方便更大规模的接入，已留出了分布式的接口。<br><br>
 ## 内存池概述
-mame v1.0.0测试版使用内存池.每个线程都将拥有51200字节的内存池.后期将采用两级内存池，此举是为了减少资源的浪费和考虑了一定的性能问题，一级内存池不变，由每个线程独自占有。二级内存池由所有线程共有，当内存不够时可以暂时"借"。
+mema v1.0.0测试版使用内存池.每个线程都将拥有51200字节的内存池.后期将采用两级内存池，此举是为了减少资源的浪费和考虑了一定的性能问题，一级内存池不变，由每个线程独自占有。二级内存池由所有线程共有，当内存不够时可以暂时"借"。
 
 ## 参考文献和代码
 大量参考了muduo的代码 [ https://github.com/chenshuo/muduo ](https://github.com/chenshuo/muduo) <br>
