@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmema_base_lib.a  CMakeFiles/mema_base_lib.dir/Buffer.cc.o CMakeFiles/mema_base_lib.dir/FileUtil.cc.o CMakeFiles/mema_base_lib.dir/ListBuffer.cc.o CMakeFiles/mema_base_lib.dir/Log.cc.o CMakeFiles/mema_base_lib.dir/MutexLock.cc.o CMakeFiles/mema_base_lib.dir/Socket.cc.o CMakeFiles/mema_base_lib.dir/ThreadBase.cc.o CMakeFiles/mema_base_lib.dir/WriteBuffer.cc.o
+/usr/bin/ranlib libmema_base_lib.a

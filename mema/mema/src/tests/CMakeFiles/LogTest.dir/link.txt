@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/LogTest.dir/LogTest.cc.o  -o LogTest ../libmema_base.a ../base/libmema_base_lib.a -lpthread ../thirdparty/gflags/libgflags_nothreads.a 

@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/Client.dir/Client.cc.o  -o Client ../libmema_base.a ../base/libmema_base_lib.a -lpthread ../thirdparty/gflags/libgflags_nothreads.a 

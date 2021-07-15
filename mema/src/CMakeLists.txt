@@ -13,9 +13,12 @@ target_link_libraries(mema_base PUBLIC mema_base_lib)
 target_link_libraries(mema_base PUBLIC gflags::gflags)
 
 file(GLOB HEADS "*.h")
+file(GLOB thread_HEADS "thread/*.h")
+file(GLOB poller_HEADS "poller/*.h")
+file(GLOB socketopt_HEADS "socketopt/*.h")
 
-install(FILES ${HEADS} DESTINATION ${PROJECT_SOURCE_DIR}/include)
-install(TARGETS mema_base DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+install(FILES ${HEADS} ${thread_HEADS} ${poller_HEADS} ${socketopt_HEADS} DESTINATION ${PROJECT_SOURCE_DIR}/bin/include)
+install(TARGETS mema_base DESTINATION ${PROJECT_SOURCE_DIR}/bin/lib)
 
 if(MEMA_BUILD_TESTS)
     add_subdirectory(tests)

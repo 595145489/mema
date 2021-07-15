@@ -1,7 +1,6 @@
 #include "src/ThreadPool.h"
-#include "src/thread/ListenThread.h"
-#include "src/MemaBase.h"
-#include "src/thirdparty/gflags/include/gflags/gflags.h"
+/* #include "src/thread/ListenThread.h" */
+/* #include "src/thirdparty/gflags/include/gflags/gflags.h" */
 
 #include <iostream>
 using namespace mema; 

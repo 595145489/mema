@@ -8,5 +8,5 @@ find_package(Threads)
 target_link_libraries(mema_base_lib PUBLIC -lpthread )
 file(GLOB HEADSLIB "*.h")
 
-install(FILES ${HEADSLIB} DESTINATION ${PROJECT_SOURCE_DIR}/include/base)
-install(TARGETS mema_base_lib DESTINATION ${PROJECT_SOURCE_DIR}/lib)
+install(FILES ${HEADSLIB} DESTINATION ${PROJECT_SOURCE_DIR}/bin/include/base)
+install(TARGETS mema_base_lib DESTINATION ${PROJECT_SOURCE_DIR}/bin/lib/base)

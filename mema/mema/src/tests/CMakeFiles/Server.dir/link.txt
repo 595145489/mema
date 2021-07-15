@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/Server.dir/Server.cc.o  -o Server ../libmema_base.a ../base/libmema_base_lib.a -lpthread ../thirdparty/gflags/libgflags_nothreads.a 

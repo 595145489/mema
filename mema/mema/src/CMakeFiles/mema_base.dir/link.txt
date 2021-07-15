@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmema_base.a  CMakeFiles/mema_base.dir/ChannelList.cc.o CMakeFiles/mema_base.dir/FdChannel.cc.o CMakeFiles/mema_base.dir/ThreadPool.cc.o CMakeFiles/mema_base.dir/thread/ListenThread.cc.o CMakeFiles/mema_base.dir/poller/EPoller.cc.o CMakeFiles/mema_base.dir/poller/Poller.cc.o CMakeFiles/mema_base.dir/socketopt/SocketLink.cc.o CMakeFiles/mema_base.dir/socketopt/TcpAcceptor.cc.o CMakeFiles/mema_base.dir/socketopt/TcpConnection.cc.o
+/usr/bin/ranlib libmema_base.a
