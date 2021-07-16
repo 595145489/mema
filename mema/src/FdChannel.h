@@ -1,7 +1,7 @@
 #pragma once
 #include "src/base/Socket.h"
 #include "src/base/MutexLock.h"
-#include "src/base/WriteBuffer.h"
+#include "src/writerbatch/WriteBuffer.h"
 
 #include <functional>
 #include <unordered_map>
@@ -82,12 +82,16 @@ public:
 
     void SendOps();
     void Send(std::string &str);
+    void SendNormal(std::string &str);
 
     void OnConnection();
     void OnRead(std::shared_ptr<ListBuffer> message,MessageRetrieveCallBack callback);
     void OnClose();
 
     void SetCloseCallBackFunc(CloseFdCallback func){ close_callback_func = func; };
+
+private:
+    void AddCurrentNumber(){ ++current_number; };
 
 private:
     static const int kNoneEvent;

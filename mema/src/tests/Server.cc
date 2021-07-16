@@ -23,7 +23,7 @@ public:
 };
 int main()
 {
-    std::shared_ptr<ThreadPool> x(new ThreadPool());// = std::make_shared<ThreadPool>();
+    std::shared_ptr<ThreadPool> x = std::make_shared<ThreadPool>();
     MemaBase* xx = new Server();
     x->AddNewThread<ListenThread>(xx,1);
     x->start();

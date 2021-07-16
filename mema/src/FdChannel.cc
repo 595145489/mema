@@ -2,6 +2,7 @@
 #include "src/base/ListBuffer.h"
 #include "src/base/coding.h"
 #include "src/MemaBase.h"
+#include "src/writerbatch/WriteStringBufferNormal.h"
 
 #include "sys/poll.h"
 #include <fcntl.h>
@@ -152,9 +153,23 @@ void FdChannel::Send(std::string &str)
         full_writing+=writer->GetRemainCount();
         unwritelist.emplace_back(writer);
         SendOps();
+        AddCurrentNumber();
     }
 }
 
+void FdChannel::SendNormal(std::string &str)
+{
+    if(str.size()<=0)
+        return;
+    shared_ptr<WriteBuffer> writer = std::make_shared<WriteStringBufferNormal>(current_number,str);
+    {
+        MutexLockGuard lock_(unwritelist_lock);
+        full_writing+=writer->GetRemainCount();
+        unwritelist.emplace_back(writer);
+        SendOps();
+        AddCurrentNumber();
+    }
+}
 
 int FdChannel::PrepareWriteBuffer(std::shared_ptr<ListBuffer>& message,int message_szie)
 {
