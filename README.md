@@ -58,6 +58,7 @@ class Server:public MemaBase {
 ```c++
 std::string send_message("123");
 fd->Send(send_message);
+fd->SendNormal(send_message); //如果选择这个选项,则发送不带自定义协议的包,包的解析应该由应用层自行解决
 ```
 如果是客户端的话，只需要修改为目标的IP和端口号即可
 ```c++
